@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../features/auth/notifiers/auth_notifier.dart';
+import '../features/auth/screens/login_screen.dart';
+import '../features/auth/screens/register_screen.dart';
+import '../features/notes/screens/notes_list_screen.dart';
+import '../features/notes/screens/upload_note_screen.dart';
+
 import '../features/internships/screens/internship_list_screen.dart';
 import '../features/internships/screens/internship_detail_screen.dart';
 import '../features/events/screens/event_list_screen.dart';
@@ -11,69 +19,117 @@ import '../features/doubt_solver/screens/doubt_list_screen.dart';
 import '../features/doubt_solver/screens/doubt_detail_screen.dart';
 import '../features/doubt_solver/screens/post_doubt_screen.dart';
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/internships',
-  routes: [
-    ShellRoute(
-      builder: (context, state, child) =>
-          AppShell(child: child, location: state.uri.toString()),
-      routes: [
-        GoRoute(
-          path: '/internships',
-          builder: (context, state) => const InternshipListScreen(),
-          routes: [
-            GoRoute(
-              path: ':id',
-              builder: (context, state) => InternshipDetailScreen(
-                  internshipId: state.pathParameters['id']!),
-            ),
-          ],
-        ),
-        GoRoute(
-          path: '/events',
-          builder: (context, state) => const EventListScreen(),
-          routes: [
-            GoRoute(
-              path: ':id',
-              builder: (context, state) => EventDetailScreen(
-                  eventId: state.pathParameters['id']!),
-            ),
-          ],
-        ),
-        GoRoute(
-          path: '/books',
-          builder: (context, state) => const BookListScreen(),
-          routes: [
-            GoRoute(
-              path: 'list',
-              builder: (context, state) => const ListBookScreen(),
-            ),
-            GoRoute(
-              path: ':id',
-              builder: (context, state) =>
-                  BookDetailScreen(bookId: state.pathParameters['id']!),
-            ),
-          ],
-        ),
-        GoRoute(
-          path: '/doubts',
-          builder: (context, state) => const DoubtListScreen(),
-          routes: [
-            GoRoute(
-              path: 'post',
-              builder: (context, state) => const PostDoubtScreen(),
-            ),
-            GoRoute(
-              path: ':id',
-              builder: (context, state) =>
-                  DoubtDetailScreen(doubtId: state.pathParameters['id']!),
-            ),
-          ],
-        ),
-      ],
-    ),
-  ],
-);
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('ProfileScreen')));
+}
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authProvider);
+
+  return GoRouter(
+    initialLocation: '/internships',
+    redirect: (context, state) {
+      if (authState.isLoading) return null;
+      
+      final isAuth = authState.value != null;
+      final isGoingToLogin = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+
+      if (!isAuth && !isGoingToLogin) {
+        return '/login';
+      }
+      if (isAuth && (state.matchedLocation == '/' || isGoingToLogin)) {
+        return '/internships';
+      }
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      ShellRoute(
+        builder: (context, state, child) => AppShell(child: child, location: state.uri.toString()),
+        routes: [
+          GoRoute(
+            path: '/internships',
+            builder: (context, state) => const InternshipListScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) => InternshipDetailScreen(
+                    internshipId: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/events',
+            builder: (context, state) => const EventListScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) => EventDetailScreen(
+                    eventId: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/books',
+            builder: (context, state) => const BookListScreen(),
+            routes: [
+              GoRoute(
+                path: 'list',
+                builder: (context, state) => const ListBookScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    BookDetailScreen(bookId: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/doubts',
+            builder: (context, state) => const DoubtListScreen(),
+            routes: [
+              GoRoute(
+                path: 'post',
+                builder: (context, state) => const PostDoubtScreen(),
+              ),
+              GoRoute(
+                path: ':id',
+                builder: (context, state) =>
+                    DoubtDetailScreen(doubtId: state.pathParameters['id']!),
+              ),
+            ],
+          ),
+        ],
+      ),
+      // Other standalone routes (Notes, Profile etc)
+      GoRoute(
+        path: '/notes',
+        builder: (context, state) => const NotesListScreen(),
+      ),
+      GoRoute(
+        path: '/notes/upload',
+        builder: (context, state) => const UploadNoteScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+    ],
+  );
+});
 
 class AppShell extends StatelessWidget {
   final Widget child;

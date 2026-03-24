@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router.dart';
 
 void main() {
-  runApp(const NexusApp());
+  runApp(
+    const ProviderScope(
+      child: NexusApp(),
+    ),
+  );
 }
 
-class NexusApp extends StatelessWidget {
+class NexusApp extends ConsumerWidget {
   const NexusApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
     return MaterialApp.router(
       title: 'Nexus',
       debugShowCheckedModeBanner: false,
@@ -19,11 +26,8 @@ class NexusApp extends StatelessWidget {
           secondary: Color(0xFF6C63FF),
         ),
         scaffoldBackgroundColor: const Color(0xFF0F1117),
-        textTheme: ThemeData.dark().textTheme.apply(
-              fontFamily: 'Inter',
-            ),
       ),
-      routerConfig: appRouter,
+      routerConfig: router,
     );
   }
 }
