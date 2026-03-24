@@ -1,15 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'constants.dart';
 
 class ApiService {
-  late final Dio _dio;
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  
+  late Dio _dio;
+  final _storage = const FlutterSecureStorage();
+
   ApiService() {
     _dio = Dio(BaseOptions(
-      baseUrl: 'http://10.0.2.2:8000',
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
+      contentType: 'application/json',
     ));
 
     _dio.interceptors.add(InterceptorsWrapper(
@@ -21,55 +23,53 @@ class ApiService {
         return handler.next(options);
       },
       onError: (DioException e, handler) {
-        String errorMessage = 'An error occurred';
+        String message = 'Something went wrong';
         if (e.response != null && e.response?.data != null) {
-          final data = e.response?.data;
-          if (data is Map && data.containsKey('detail')) {
-            errorMessage = data['detail'];
+          if (e.response!.data is Map && e.response!.data.containsKey('detail')) {
+             message = e.response!.data['detail'].toString();
           }
-        } else {
-          errorMessage = e.message ?? errorMessage;
         }
-        return handler.next(DioException(
-            requestOptions: e.requestOptions,
-            error: errorMessage,
-            type: e.type,
-            response: e.response));
+        final customError = DioException(
+          requestOptions: e.requestOptions,
+          response: e.response,
+          type: e.type,
+          error: message,
+        );
+        return handler.next(customError);
       },
     ));
   }
 
-  Future<Map<String, dynamic>> post(String path, dynamic body) async {
+  Future<dynamic> get(String path, {Map<String, dynamic>? params}) async {
+    final response = await _dio.get(path, queryParameters: params);
+    return response.data;
+  }
+
+  Future<dynamic> post(String path, Map<String, dynamic> body) async {
     final response = await _dio.post(path, data: body);
     return response.data;
   }
 
-  Future<Map<String, dynamic>> get(String path, {Map<String, dynamic>? params}) async {
-    final response = await _dio.get(path, queryParameters: params);
-    if (response.data is List) {
-      return {'data': response.data};
-    }
-    return response.data;
-  }
-
-  Future<Map<String, dynamic>> put(String path, dynamic body) async {
+  Future<dynamic> put(String path, Map<String, dynamic> body) async {
     final response = await _dio.put(path, data: body);
     return response.data;
   }
 
-  Future<Map<String, dynamic>> delete(String path) async {
+  Future<dynamic> delete(String path) async {
     final response = await _dio.delete(path);
     return response.data;
   }
 
-  Future<Map<String, dynamic>> postMultipart(String path, Map<String, String> fields, {String? filePath, String? fileField}) async {
+  Future<dynamic> postMultipart(String path, Map<String, String> fields, {String? filePath, String? fileField}) async {
     final formData = FormData.fromMap(fields);
     if (filePath != null && fileField != null) {
+      final fileName = filePath.split('/').last;
       formData.files.add(MapEntry(
         fileField,
-        await MultipartFile.fromFile(filePath),
+        await MultipartFile.fromFile(filePath, filename: fileName),
       ));
     }
+    
     final response = await _dio.post(path, data: formData);
     return response.data;
   }
