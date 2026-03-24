@@ -1,1 +1,45 @@
+# Environment
 .env
+.env.*
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+
+# Android
+.gradle/
+local.properties
+*.keystore
+*.jks
+*.quiet
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+proguard-project.txt
+package-list
+
+# iOS
+.generated/
+*.swifter
+*.xcworkspace
+!default.xcworkspace
+xcuserdata/
+DerivedData/
+*.app
+*.diff
+*.ipa
+*.plist.bak
+*.cert
+*.mobileprovision
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Mac
+.DS_Store

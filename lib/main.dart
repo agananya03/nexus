@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router.dart';
+import 'core/theme.dart';
 
 void main() {
   runApp(
@@ -20,13 +21,7 @@ class NexusApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Nexus',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF6C63FF),
-          secondary: Color(0xFF6C63FF),
-        ),
-        scaffoldBackgroundColor: const Color(0xFF0F1117),
-      ),
+      theme: AppTheme.lightTheme,
       routerConfig: router,
     );
   }
