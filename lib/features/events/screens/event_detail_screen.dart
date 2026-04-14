@@ -198,8 +198,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                 ),
                               ),
                               title: Text(r['name'] ?? '',
-                                  style: const TextStyle(
-                                      color: Colors.white87)),
+                                  style: TextStyle(
+                                      color: Colors.white.withOpacity(0.87))),
                               subtitle: Text(r['email'] ?? '',
                                   style: const TextStyle(
                                       color: Colors.white38, fontSize: 12)),

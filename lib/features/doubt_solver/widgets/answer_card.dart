@@ -66,8 +66,8 @@ class AnswerCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(name,
-                    style: const TextStyle(
-                        color: Colors.white87,
+                    style: TextStyle(
+                        color: Colors.white.withOpacity(0.87),
                         fontWeight: FontWeight.w600,
                         fontSize: 13)),
               ),

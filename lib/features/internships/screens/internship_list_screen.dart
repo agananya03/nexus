@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../core/api_service.dart';
+import '../../../core/api_service.dart';
 import 'internship_detail_screen.dart';
 
 class InternshipListScreen extends StatefulWidget {

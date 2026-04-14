@@ -46,8 +46,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               _selectedYear,
               _selectedSemester,
             );
-        if (mounted && ref.read(authProvider).value != null) {
-          context.go('/home');
+        final finalState = ref.read(authProvider);
+        if (mounted && finalState.hasError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Registration failed: ${finalState.error}')),
+          );
+        } else if (mounted && finalState.value != null) {
+          context.go('/internships');
         }
       } catch (e) {
         if (mounted) {
@@ -72,7 +77,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 TextFormField(
                   controller: _nameController,
@@ -134,15 +138,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   onChanged: (val) => setState(() => _selectedSemester = val),
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: isLoading ? null : _register,
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Text('Register'),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : _register,
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Text('Register'),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 TextButton(

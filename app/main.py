@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.database import Base, engine
 from app.models import user, internship, event, event_rsvp, book, doubt, answer, answer_upvote
-from app.routers import internships, events, books, doubts
+from app.routers import internships, events, books, doubts, auth
 
 # Create all tables on startup (use Alembic for production migrations)
 Base.metadata.create_all(bind=engine)
@@ -12,6 +12,7 @@ app.include_router(internships.router)
 app.include_router(events.router)
 app.include_router(books.router)
 app.include_router(doubts.router)
+app.include_router(auth.router)
 
 
 @app.get("/")

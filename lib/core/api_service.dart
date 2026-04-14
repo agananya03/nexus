@@ -62,6 +62,25 @@ class ApiService {
     return response.data;
   }
 
+  Future<dynamic> postMultipart(
+    String path,
+    Map<String, String> fields, {
+    required String filePath,
+    required String fileField,
+  }) async {
+    final formData = FormData.fromMap(fields);
+    formData.files.add(MapEntry(
+      fileField,
+      await MultipartFile.fromFile(filePath),
+    ));
+    final response = await _dio.post(
+      path,
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    return response.data;
+  }
+
   // ── Internships ──────────────────────────────────────────────
   Future<List<dynamic>> getInternships({String? domain, String? location}) async {
     final params = <String, dynamic>{};
