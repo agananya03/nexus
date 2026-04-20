@@ -29,13 +29,14 @@ class ApiService {
             message = e.response!.data['detail'].toString();
           }
         }
-        final customError = DioException(
-          requestOptions: e.requestOptions,
-          response: e.response,
-          type: e.type,
-          error: message,
+        return handler.reject(
+          DioException(
+            requestOptions: e.requestOptions,
+            response: e.response,
+            type: e.type,
+            error: message,
+          ),
         );
-        return handler.next(customError);
       },
     ));
   }
