@@ -65,4 +65,34 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      primaryColor: const Color(0xFF6C63FF),
+      scaffoldBackgroundColor: const Color(0xFF0F1117),
+      cardColor: const Color(0xFF1A1D27),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF6C63FF),
+        brightness: Brightness.dark,
+        surface: const Color(0xFF1A1D27),
+      ),
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
+        displayMedium: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
+        titleLarge: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+        bodyLarge: GoogleFonts.inter(color: Colors.white70),
+        bodyMedium: GoogleFonts.inter(color: Colors.white70),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF6C63FF),
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
 }

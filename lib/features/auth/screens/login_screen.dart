@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../notifiers/auth_notifier.dart';
+import '../../../shared/widgets/app_toast.dart';
+import '../../../shared/widgets/loading_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -32,17 +34,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             );
         final finalState = ref.read(authProvider);
         if (mounted && finalState.hasError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login failed: ${finalState.error}')),
-          );
+          showAppToast(context, 'Login failed: ${finalState.error}', isError: true);
         } else if (mounted && finalState.value != null) {
           context.go('/internships');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login error: ${e.toString()}')),
-          );
+          showAppToast(context, 'Login error: ${e.toString()}', isError: true);
         }
       }
     }
@@ -53,17 +51,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(authProvider.notifier).loginWithGoogle();
       final finalState = ref.read(authProvider);
       if (mounted && finalState.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google Login failed: ${finalState.error}')),
-        );
+        showAppToast(context, 'Google Login failed: ${finalState.error}', isError: true);
       } else if (mounted && finalState.value != null) {
         context.go('/internships');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google Sign-In error: ${e.toString()}')),
-        );
+        showAppToast(context, 'Google Sign-In error: ${e.toString()}', isError: true);
       }
     }
   }
@@ -74,6 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0F1117),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -86,13 +81,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     'NEXUS',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.displayLarge,
+                    style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 48),
                   ),
                   const SizedBox(height: 48),
-                  TextFormField(
+                  _buildTextField(
                     controller: _emailController,
+                    label: 'Email',
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'Email'),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
@@ -104,21 +99,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
+                  _buildTextField(
                     controller: _passwordController,
+                    label: 'Password',
                     obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.white54,
                       ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -128,24 +122,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : _login,
-                      child: isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                          : const Text('Login'),
-                    ),
+                  LoadingButton(
+                    label: 'Login',
+                    isLoading: isLoading,
+                    onPressed: _login,
                   ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: isLoading ? null : _loginWithGoogle,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF6C63FF),
+                        side: const BorderSide(color: Color(0xFF6C63FF)),
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                       icon: const Icon(Icons.login),
                       label: const Text('Sign in with Google'),
                     ),
@@ -153,7 +145,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 24),
                   TextButton(
                     onPressed: () => context.push('/register'),
-                    child: const Text("Don't have an account? Register"),
+                    child: const Text("Don't have an account? Register", style: TextStyle(color: Colors.white70)),
                   ),
                 ],
               ),
@@ -161,6 +153,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+    Widget? suffixIcon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white54),
+        filled: true,
+        fillColor: const Color(0xFF1A1D27),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        suffixIcon: suffixIcon,
+      ),
+      validator: validator,
     );
   }
 }

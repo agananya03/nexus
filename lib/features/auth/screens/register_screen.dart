@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../notifiers/auth_notifier.dart';
+import '../../../shared/widgets/app_toast.dart';
+import '../../../shared/widgets/loading_button.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -48,17 +50,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             );
         final finalState = ref.read(authProvider);
         if (mounted && finalState.hasError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration failed: ${finalState.error}')),
-          );
+          showAppToast(context, 'Registration failed: ${finalState.error}', isError: true);
         } else if (mounted && finalState.value != null) {
           context.go('/internships');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration failed: ${e.toString()}')),
-          );
+          showAppToast(context, 'Registration failed: ${e.toString()}', isError: true);
         }
       }
     }
@@ -70,7 +68,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account'), elevation: 0),
+      backgroundColor: const Color(0xFF0F1117),
+      appBar: AppBar(
+        title: const Text('Create Account', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A1D27),
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -78,16 +82,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             key: _formKey,
             child: Column(
               children: [
-                TextFormField(
+                _buildTextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Full Name'),
+                  label: 'Full Name',
                   validator: (value) => value == null || value.isEmpty ? 'Enter your name' : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildTextField(
                   controller: _emailController,
+                  label: 'Email',
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email'),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Enter your email';
                     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
@@ -97,23 +101,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildTextField(
                   controller: _passwordController,
+                  label: 'Password',
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
                   validator: (value) => value == null || value.isEmpty ? 'Enter a password' : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildTextField(
                   controller: _collegeController,
-                  decoration: const InputDecoration(labelText: 'College Name (Optional)'),
+                  label: 'College Name (Optional)',
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(labelText: 'Branch'),
+                        decoration: _inputDec('Branch'),
+                        dropdownColor: const Color(0xFF1A1D27),
+                        style: const TextStyle(color: Colors.white),
                         value: _selectedBranch,
                         items: _branches.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
                         onChanged: (val) => setState(() => _selectedBranch = val),
@@ -122,7 +128,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        decoration: const InputDecoration(labelText: 'Year'),
+                        decoration: _inputDec('Year'),
+                        dropdownColor: const Color(0xFF1A1D27),
+                        style: const TextStyle(color: Colors.white),
                         value: _selectedYear,
                         items: _years.map((y) => DropdownMenuItem(value: y, child: Text(y.toString()))).toList(),
                         onChanged: (val) => setState(() => _selectedYear = val),
@@ -132,35 +140,56 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
-                  decoration: const InputDecoration(labelText: 'Semester'),
+                  decoration: _inputDec('Semester'),
+                  dropdownColor: const Color(0xFF1A1D27),
+                  style: const TextStyle(color: Colors.white),
                   value: _selectedSemester,
                   items: _semesters.map((s) => DropdownMenuItem(value: s, child: Text(s.toString()))).toList(),
                   onChanged: (val) => setState(() => _selectedSemester = val),
                 ),
                 const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : _register,
-                    child: isLoading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text('Register'),
-                  ),
+                LoadingButton(
+                  label: 'Register',
+                  isLoading: isLoading,
+                  onPressed: _register,
                 ),
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => context.go('/login'),
-                  child: const Text('Already have an account? Login'),
+                  child: const Text('Already have an account? Login', style: TextStyle(color: Colors.white70)),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: _inputDec(label),
+      validator: validator,
+    );
+  }
+
+  InputDecoration _inputDec(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white54),
+      filled: true,
+      fillColor: const Color(0xFF1A1D27),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
     );
   }
 }

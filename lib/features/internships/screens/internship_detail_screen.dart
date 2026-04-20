@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/app_toast.dart';
 
 class InternshipDetailScreen extends StatefulWidget {
   final String internshipId;
@@ -27,7 +28,8 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
     try {
       final d = await _api.getInternshipById(widget.internshipId);
       setState(() => _data = d);
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load details: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -49,9 +51,7 @@ class _InternshipDetailScreenState extends State<InternshipDetailScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open the link')),
-        );
+        showAppToast(context, 'Could not open the link', isError: true);
       }
     }
   }

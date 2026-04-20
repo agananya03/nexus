@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
 import '../widgets/answer_card.dart';
+import '../../auth/notifiers/auth_notifier.dart';
+import '../../../shared/widgets/app_toast.dart';
 
-class DoubtDetailScreen extends StatefulWidget {
+class DoubtDetailScreen extends ConsumerStatefulWidget {
   final String doubtId;
   const DoubtDetailScreen({super.key, required this.doubtId});
 
   @override
-  State<DoubtDetailScreen> createState() => _DoubtDetailScreenState();
+  ConsumerState<DoubtDetailScreen> createState() => _DoubtDetailScreenState();
 }
 
-class _DoubtDetailScreenState extends State<DoubtDetailScreen> {
+class _DoubtDetailScreenState extends ConsumerState<DoubtDetailScreen> {
   final ApiService _api = ApiService();
   final _answerCtrl = TextEditingController();
 
@@ -19,9 +22,6 @@ class _DoubtDetailScreenState extends State<DoubtDetailScreen> {
   List<dynamic> _answers = [];
   bool _loading = true;
   bool _posting = false;
-
-  // In a real app, get from auth provider
-  static const _currentUserId = 'demo-user-id';
 
   @override
   void initState() {
@@ -37,7 +37,8 @@ class _DoubtDetailScreenState extends State<DoubtDetailScreen> {
         _doubt = d;
         _answers = List<dynamic>.from(d['answers'] ?? []);
       });
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load details: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -53,8 +54,7 @@ class _DoubtDetailScreenState extends State<DoubtDetailScreen> {
       await _load();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')));
+        showAppToast(context, 'Error: $e', isError: true);
       }
     } finally {
       setState(() => _posting = false);
@@ -67,8 +67,7 @@ class _DoubtDetailScreenState extends State<DoubtDetailScreen> {
       await _load();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')));
+        showAppToast(context, 'Error: $e', isError: true);
       }
     }
   }
@@ -100,7 +99,8 @@ class _DoubtDetailScreenState extends State<DoubtDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isAsker = _doubt?['asked_by'] == _currentUserId;
+    final currentUserId = ref.watch(authProvider).value?.userId;
+    final isAsker = _doubt?['asked_by'] == currentUserId;
     final isResolved = _doubt?['is_resolved'] == true;
 
     return Scaffold(

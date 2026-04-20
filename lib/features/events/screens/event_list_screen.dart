@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/app_toast.dart';
 import 'event_detail_screen.dart';
 
 const _categories = ['All', 'Hackathon', 'Fest', 'Workshop', 'Sports'];
@@ -29,7 +31,8 @@ class _EventListScreenState extends State<EventListScreen> {
       final data = await _api.getEvents(
           category: _category == 'All' ? null : _category);
       setState(() => _events = data);
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load events: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -101,13 +104,17 @@ class _EventListScreenState extends State<EventListScreen> {
                     child: CircularProgressIndicator(
                         color: Color(0xFF6C63FF)))
                 : _events.isEmpty
-                    ? const Center(
-                        child: Text('No upcoming events',
-                            style: TextStyle(color: Colors.white54)))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _events.length,
-                        itemBuilder: (ctx, i) {
+                    ? const EmptyState(
+                        icon: Icons.event_busy,
+                        title: 'No upcoming events',
+                        subtitle: 'Modify your filters or check back later.',
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _fetch,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: _events.length,
+                          itemBuilder: (ctx, i) {
                           final ev = _events[i] as Map<String, dynamic>;
                           return GestureDetector(
                             onTap: () => Navigator.push(
@@ -174,6 +181,7 @@ class _EventListScreenState extends State<EventListScreen> {
                             ),
                           );
                         },
+                      ),
                       ),
           ),
         ],

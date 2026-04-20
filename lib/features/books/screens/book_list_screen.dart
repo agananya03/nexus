@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/app_toast.dart';
 import 'book_detail_screen.dart';
 import 'list_book_screen.dart';
 
@@ -26,7 +28,8 @@ class _BookListScreenState extends State<BookListScreen> {
     try {
       final data = await _api.getBooks();
       setState(() => _books = data);
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load books: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -73,9 +76,11 @@ class _BookListScreenState extends State<BookListScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF6C63FF)))
           : _books.isEmpty
-              ? const Center(
-                  child: Text('No books available',
-                      style: TextStyle(color: Colors.white54)))
+              ? const EmptyState(
+                  icon: Icons.menu_book,
+                  title: 'No books available',
+                  subtitle: 'Be the first to list a book!',
+                )
               : RefreshIndicator(
                   onRefresh: _fetch,
                   child: GridView.builder(

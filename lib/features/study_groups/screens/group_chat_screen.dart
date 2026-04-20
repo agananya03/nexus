@@ -7,6 +7,7 @@ import '../notifiers/chat_notifier.dart';
 import '../../auth/notifiers/auth_notifier.dart';
 import '../models/message_model.dart';
 import '../../../core/api_service.dart';
+import '../../../core/constants.dart';
 
 class GroupChatScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -33,8 +34,9 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
     await ref.read(chatProvider(widget.groupId).notifier).loadHistory(widget.groupId);
     final jwt = await _storage.read(key: 'jwt');
     if (jwt != null) {
+      final wsUrl = baseUrl.replaceFirst('http', 'ws');
       _channel = WebSocketChannel.connect(
-        Uri.parse('ws://10.0.2.2:8000/ws/groups/${widget.groupId}?token=$jwt'),
+        Uri.parse('$wsUrl/ws/groups/${widget.groupId}?token=$jwt'),
       );
       
       _channel!.stream.listen((message) {
@@ -81,7 +83,12 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
     final currentUser = ref.watch(authProvider).value;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.groupName)),
+      backgroundColor: const Color(0xFF0F1117),
+      appBar: AppBar(
+        title: Text(widget.groupName, style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A1D27),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -98,19 +105,19 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                     margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isMe ? Colors.blue : Colors.grey[300],
+                      color: isMe ? const Color(0xFF6C63FF) : const Color(0xFF1A1D27),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
                       crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                       children: [
                         if (!isMe)
-                          Text(msg.senderName ?? 'User', style: const TextStyle(fontSize: 10, color: Colors.black54)),
-                        Text(msg.content, style: TextStyle(color: isMe ? Colors.white : Colors.black)),
+                          Text(msg.senderName ?? 'User', style: const TextStyle(fontSize: 10, color: Colors.white54)),
+                        Text(msg.content, style: const TextStyle(color: Colors.white)),
                         const SizedBox(height: 4),
                         Text(
                           msg.sentAt.split('T').last.substring(0, 5), 
-                          style: TextStyle(fontSize: 10, color: isMe ? Colors.white70 : Colors.black54),
+                          style: TextStyle(fontSize: 10, color: isMe ? Colors.white70 : Colors.white54),
                         ),
                       ],
                     ),
@@ -126,16 +133,20 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    decoration: const InputDecoration(
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
                       hintText: 'Type a message...',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(24))),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      filled: true,
+                      fillColor: const Color(0xFF1A1D27),
+                      border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(24)), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 CircleAvatar(
-                  backgroundColor: Colors.blue,
+                  backgroundColor: const Color(0xFF6C63FF),
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),
                     onPressed: _sendMessage,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/app_toast.dart';
+import '../../../shared/widgets/loading_button.dart';
 
 const _subjects = [
   'Mathematics',
@@ -54,16 +56,12 @@ class _PostDoubtScreenState extends State<PostDoubtScreen> {
         tags: _tags,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Doubt posted!')),
-        );
+        showAppToast(context, 'Doubt posted!');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        showAppToast(context, 'Error: $e', isError: true);
       }
     } finally {
       setState(() => _loading = false);
@@ -174,25 +172,10 @@ class _PostDoubtScreenState extends State<PostDoubtScreen> {
               ],
 
               const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _loading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2))
-                      : const Text('Post Doubt',
-                          style: TextStyle(color: Colors.white, fontSize: 16)),
-                ),
+              LoadingButton(
+                label: 'Post Doubt',
+                isLoading: _loading,
+                onPressed: _submit,
               ),
             ],
           ),

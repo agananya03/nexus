@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
+import '../../auth/notifiers/auth_notifier.dart';
+import '../../../shared/widgets/app_toast.dart';
 
-class EventDetailScreen extends StatefulWidget {
+class EventDetailScreen extends ConsumerStatefulWidget {
   final String eventId;
   const EventDetailScreen({super.key, required this.eventId});
   @override
-  State<EventDetailScreen> createState() => _EventDetailScreenState();
+  ConsumerState<EventDetailScreen> createState() => _EventDetailScreenState();
 }
 
-class _EventDetailScreenState extends State<EventDetailScreen> {
+class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   final ApiService _api = ApiService();
   Map<String, dynamic>? _event;
   List<dynamic> _rsvps = [];
   bool _loading = true;
   bool _rsvpd = false;
   bool _rsvpLoading = false;
-
-  // In a real app, get current user id from auth provider.
-  static const _currentUserId = 'demo-user-id';
 
   @override
   void initState() {
@@ -30,12 +30,14 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     try {
       final ev = await _api.getEventById(widget.eventId);
       final rsvps = await _api.getEventRsvps(widget.eventId);
+      final currentUserId = ref.read(authProvider).value?.userId;
       setState(() {
         _event = ev;
         _rsvps = rsvps;
-        _rsvpd = rsvps.any((r) => r['user_id'] == _currentUserId);
+        _rsvpd = rsvps.any((r) => r['user_id'] == currentUserId);
       });
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load details: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -48,9 +50,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       await _load();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        showAppToast(context, e.toString(), isError: true);
       }
     } finally {
       setState(() => _rsvpLoading = false);
@@ -62,7 +62,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     try {
       return DateFormat('EEEE, dd MMM yyyy • hh:mm a')
           .format(DateTime.parse(dt));
-    } catch (_) {
+    } catch (e) {
       return dt;
     }
   }

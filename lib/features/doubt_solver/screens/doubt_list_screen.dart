@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/app_toast.dart';
 import 'doubt_detail_screen.dart';
 import 'post_doubt_screen.dart';
 
@@ -31,7 +33,8 @@ class _DoubtListScreenState extends State<DoubtListScreen> {
         isResolved: _showResolved,
       );
       setState(() => _doubts = data);
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load doubts: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -121,9 +124,11 @@ class _DoubtListScreenState extends State<DoubtListScreen> {
                     child: CircularProgressIndicator(
                         color: Color(0xFF6C63FF)))
                 : _doubts.isEmpty
-                    ? const Center(
-                        child: Text('No doubts found',
-                            style: TextStyle(color: Colors.white54)))
+                    ? const EmptyState(
+                        icon: Icons.help_outline,
+                        title: 'No doubts found',
+                        subtitle: 'Modify your filters or ask a new doubt.',
+                      )
                     : RefreshIndicator(
                         onRefresh: _fetch,
                         child: ListView.builder(

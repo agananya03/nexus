@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/app_toast.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final String bookId;
@@ -25,7 +26,8 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     try {
       final d = await _api.getBookById(widget.bookId);
       setState(() => _book = d);
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load details: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -53,9 +55,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No contact info available')),
-      );
+      showAppToast(context, 'No contact info available', isError: true);
     }
   }
 

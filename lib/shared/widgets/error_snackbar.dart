@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
+import 'app_toast.dart';
 
 void showErrorSnackbar(BuildContext context, String message) {
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      backgroundColor: Colors.red,
-      duration: const Duration(seconds: 3),
-    ),
-  );
+  showAppToast(context, message, isError: true);
 }

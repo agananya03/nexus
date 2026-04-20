@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/app_toast.dart';
+import '../../../shared/widgets/loading_button.dart';
 
 class ListBookScreen extends StatefulWidget {
   const ListBookScreen({super.key});
@@ -53,16 +55,12 @@ class _ListBookScreenState extends State<ListBookScreen> {
       });
       await _api.createBook(fd);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Book listed successfully!')),
-        );
+        showAppToast(context, 'Book listed successfully!');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        showAppToast(context, 'Error: $e', isError: true);
       }
     } finally {
       setState(() => _loading = false);
@@ -145,26 +143,10 @@ class _ListBookScreenState extends State<ListBookScreen> {
               ),
 
               const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _loading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2))
-                      : const Text('Submit Listing',
-                          style: TextStyle(
-                              color: Colors.white, fontSize: 16)),
-                ),
+              LoadingButton(
+                label: 'Submit Listing',
+                isLoading: _loading,
+                onPressed: _submit,
               ),
             ],
           ),

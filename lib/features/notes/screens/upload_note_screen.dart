@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../notifiers/notes_notifier.dart';
+import '../../../shared/widgets/app_toast.dart';
+import '../../../shared/widgets/loading_button.dart';
 
 class UploadNoteScreen extends ConsumerStatefulWidget {
   const UploadNoteScreen({super.key});
@@ -47,9 +49,7 @@ class _UploadNoteScreenState extends ConsumerState<UploadNoteScreen> {
         _subjectController.text.isEmpty ||
         _selectedSemester == null ||
         _filePath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields and select a file')),
-      );
+      showAppToast(context, 'Please fill all required fields and select a file', isError: true);
       return;
     }
 
@@ -63,16 +63,12 @@ class _UploadNoteScreenState extends ConsumerState<UploadNoteScreen> {
             _filePath!,
           );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Note uploaded successfully!')),
-        );
+        showAppToast(context, 'Note uploaded successfully!');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e')),
-        );
+        showAppToast(context, 'Upload failed: $e', isError: true);
       }
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -82,31 +78,34 @@ class _UploadNoteScreenState extends ConsumerState<UploadNoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Upload Note')),
+      backgroundColor: const Color(0xFF0F1117),
+      appBar: AppBar(
+        title: const Text('Upload Note', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A1D27),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Title *'),
-            ),
+            _buildTextField(_titleController, 'Title *'),
             const SizedBox(height: 16),
-            TextField(
-              controller: _subjectController,
-              decoration: const InputDecoration(labelText: 'Subject *'),
-            ),
+            _buildTextField(_subjectController, 'Subject *'),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
-              decoration: const InputDecoration(labelText: 'Semester *'),
+              decoration: _inputDec('Semester *'),
+              dropdownColor: const Color(0xFF1A1D27),
+              style: const TextStyle(color: Colors.white),
               value: _selectedSemester,
               items: _semesters.map((s) => DropdownMenuItem(value: s, child: Text(s.toString()))).toList(),
               onChanged: (val) => setState(() => _selectedSemester = val),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              decoration: const InputDecoration(labelText: 'Branch (Optional)'),
+              decoration: _inputDec('Branch (Optional)'),
+              dropdownColor: const Color(0xFF1A1D27),
+              style: const TextStyle(color: Colors.white),
               value: _selectedBranch,
               items: _branches.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
               onChanged: (val) => setState(() => _selectedBranch = val),
@@ -114,19 +113,40 @@ class _UploadNoteScreenState extends ConsumerState<UploadNoteScreen> {
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: _pickFile,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF6C63FF),
+                side: const BorderSide(color: Color(0xFF6C63FF)),
+              ),
               icon: const Icon(Icons.attach_file),
               label: Text(_fileName ?? 'Select File (PDF, Image) *'),
             ),
             const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _isUploading ? null : _upload,
-              child: _isUploading
-                  ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('Upload Note'),
+            LoadingButton(
+              label: 'Upload Note',
+              isLoading: _isUploading,
+              onPressed: _upload,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      decoration: _inputDec(label),
+    );
+  }
+
+  InputDecoration _inputDec(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white54),
+      filled: true,
+      fillColor: const Color(0xFF1A1D27),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
     );
   }
 }

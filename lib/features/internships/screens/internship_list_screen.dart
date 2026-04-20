@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/api_service.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/app_toast.dart';
 import 'internship_detail_screen.dart';
 
 class InternshipListScreen extends StatefulWidget {
@@ -43,7 +45,8 @@ class _InternshipListScreenState extends State<InternshipListScreen> {
         location: _locationCtrl.text.trim(),
       );
       setState(() => _listings = data);
-    } catch (_) {
+    } catch (e) {
+      if (mounted) showAppToast(context, 'Failed to load internships: $e', isError: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -133,13 +136,17 @@ class _InternshipListScreenState extends State<InternshipListScreen> {
                 ? const Center(
                     child: CircularProgressIndicator(color: Color(0xFF6C63FF)))
                 : _listings.isEmpty
-                    ? const Center(
-                        child: Text('No internships found',
-                            style: TextStyle(color: Colors.white54)))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _listings.length,
-                        itemBuilder: (ctx, i) {
+                    ? const EmptyState(
+                        icon: Icons.work_off_outlined,
+                        title: 'No internships found',
+                        subtitle: 'Modify your filters or try again later.',
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _fetch,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: _listings.length,
+                          itemBuilder: (ctx, i) {
                           final item = _listings[i] as Map<String, dynamic>;
                           final soon = _isDeadlineSoon(item['deadline']);
                           return GestureDetector(
@@ -208,6 +215,7 @@ class _InternshipListScreenState extends State<InternshipListScreen> {
                             ),
                           );
                         },
+                      ),
                       ),
           ),
         ],
