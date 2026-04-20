@@ -9,3 +9,4 @@ python-multipart
 cloudinary
 httpx
 python-dotenv
+google-auth
